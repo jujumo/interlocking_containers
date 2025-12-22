@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "interlocking_containers"
 version="1.0.0"
 dependencies = [
-    "jsonargparse", "rich",
+    "jsonargparse[docstring]", "docstring-parser", "rich",
     "numpy==1.26", "matplotlib", "pillow",
     "scikit-image", "trimesh[recommend]", "manifold3d", "pyrender"
 ] # project  dependencies

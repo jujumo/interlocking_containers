@@ -15,21 +15,35 @@ class BoxConfig:
     height: float = 40.
     scale: float = 1.0
     hollow: int = 0
+    up: str = 'z'
 
 
 def create_batch_box(
         output_dir: str = 'models',
+        up: str = 'z',
+        scale: float = 1.0,
+        hollow: bool = False,
         force: bool = False,
         verbosity: int = 1
 ):
+    """
+    Save a 3D box model.
+
+    Args:
+        output_dir: Output root directory.
+        up: Up direction axis (x, y, or z).
+        scale: Scaling factor applied to the model.
+        hollow: If true then the hollow version is done.
+        force: is True, force rewrite existing files.
+        verbosity: Verbosity level (0 = quiet, 1 = display progress, 2 = warnings+export files, 3 = show meshes).
+    """
     interesting_notch_number = [3, 4, 5, 6, 8, 9, 10, 12, 16]
     interesting_height = [40., 60]
-    interesting_hollow = [0, 2]
-    # default value, in case you need
-    # nx, ny, height, scale, hollow = 3, 3, 40, 1.0, 0
-
+    interesting_hollow = [0]
+    if hollow:
+        interesting_hollow.append(1)
     configs = [
-        BoxConfig(nx=nx, ny=ny, height=height, hollow=hollow)
+        BoxConfig(nx=nx, ny=ny, height=height, hollow=hollow, up=up, scale=scale)
         for hollow in interesting_hollow
         for height in interesting_height
         for nx in interesting_notch_number
@@ -42,7 +56,7 @@ def create_batch_box(
         subdir_path = path.join(output_dir, hollow_name, height_name)
         os.makedirs(subdir_path, exist_ok=True)
 
-        output_filename = f'stackable_{hollow_name}_h{int(config.height):03}_x{config.nx:02}_y{config.ny:02}.stl'
+        output_filename = f'container_{hollow_name}_h{int(config.height):03}_x{config.nx:02}_y{config.ny:02}.stl'
         output_filepath = subdir_path + '/' + output_filename
         if path.isfile(output_filepath) and not force:
             if verbosity >= 1:

@@ -1,7 +1,7 @@
 import numpy as np
 import trimesh
 from trimesh.transformations import translation_matrix, rotation_matrix, scale_matrix, scale_and_translate
-from jsonargparse import CLI
+from jsonargparse import auto_cli
 from importlib import resources
 from pathlib import Path
 from functools import lru_cache
@@ -38,11 +38,11 @@ def create_box_size(
         verbosity: int = 1
 ):
 
-    if nx < 3:
+    if nx < 3 and verbosity >= 1:
         print(f'warning: nx must be >= 3 ({nx=}). Will be ignored.')
-    if ny < 3:
+    if ny < 3 and verbosity >= 1:
         print(f'warning: ny must be >= 3 ({ny=}). Will be ignored.')
-    if height_mm < 40.:
+    if height_mm < 40. and verbosity >= 1:
         print(f'warning: height_mm must be >= 40 ({height_mm=}). Will be ignored.')
 
     mesh = load_model_cache(hollow=hollow).copy()  # make a copy, to avoid modifying the cached version.
@@ -62,11 +62,7 @@ def create_box_size(
 
     # notch creation : from abc to abbbbc
     notch_width = 10.
-    notch_repeat = {
-        'x': nx,
-        'y': ny
-    }
-
+    notch_repeat = {'x': nx, 'y': ny}
     for axis_id in ['x', 'y']:
         ## slice_plane produce degenerate cases and lead to non water-tight volumes
         axis = axes[axis_id]
@@ -135,25 +131,36 @@ def create_box_size(
         mesh = trimesh.boolean.union(mesh_parts)
 
     # global scale
-    s_mat = np.diag([scale, scale, scale, 1])
-    mesh.apply_transform(s_mat)
+    if scale != 1.0:
+        s_mat = np.diag([scale, scale, scale, 1])
+        mesh.apply_transform(s_mat)
 
     return mesh
 
 
 def save_box_size(
-        output: str = '',
+        output: str = 'model.stl',
         nx: int = 3,
         ny: int = 3,
-        height: float = 40.,
+        height: float = 40.0,
         hollow: int = 0,
         scale: float = 1.0,
         up: str = 'z',
         verbosity: int = 1,
 ):
-    if not output:
-        output = f'stackable_x{nx:02}y{ny:02}z{int(height):03}t{hollow:1}s{scale}u{up}.stl'
+    """
+    Save a 3D box model.
 
+    Args:
+        output: Output STL filename.
+        nx: Number of divisions along the X axis.
+        ny: Number of divisions along the Y axis.
+        height: Height of the box in millimeters.
+        hollow: Whether the box is hollow (0 = solid, 1 = hollow).
+        scale: Scaling factor applied to the model.
+        up: Up direction axis (x, y, or z).
+        verbosity: Verbosity level (0 = quiet, 1 = show warnings+export, 2 = show mesh).
+    """
     if up.lower() not in ['x', 'y', 'z']:
         print(f'warning: up must be x, y or z ({up=}). Will be ignored.')
 
@@ -167,13 +174,14 @@ def save_box_size(
     if up.lower() == 'x':
         mesh.apply_transform(rotation_matrix(-np.pi / 2., [0, 1, 0]))
 
-    if verbosity >= 1:
-        print(f'exporting "{output}".')
-    mesh.export(output)
+    if output != '':
+        if verbosity >= 1:
+            print(f'exporting "{output}".')
+        mesh.export(output)
 
 
 def create_box():
-    CLI(save_box_size)
+    auto_cli(save_box_size)
 
 
 if __name__ == '__main__':
