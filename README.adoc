@@ -26,4 +26,9 @@ $> create_box
 $> create_box --nx 3 --ny 9 --height 50 stackable_3x9.stl
 # this will create a box of 3x9 notches, 50.mm height
 $> create_batch
+# this will create all models
 ----
+
+
+Be aware the total combinations of boxes use > 2Gb of disk space.
+
