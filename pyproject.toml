@@ -13,7 +13,7 @@ dependencies = [
 
 [project.scripts]
 create_box="interlocking_containers.create_box:create_box"
-batch_create="interlocking_containers.batch_create:batch_create"
+create_batch="interlocking_containers.create_batch:create_batch"
 
 [tool.setuptools]
 packages = ["interlocking_containers"]
