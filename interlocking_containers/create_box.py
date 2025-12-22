@@ -156,7 +156,7 @@ def save_box_size(
         nx: Number of divisions along the X axis.
         ny: Number of divisions along the Y axis.
         height: Height of the box in millimeters.
-        hollow: Whether the box is hollow (0 = solid, 1 = hollow).
+        hollow: Whether the box is hollow (0 = solid, 1,2,3 = hollow).
         scale: Scaling factor applied to the model.
         up: Up direction axis (x, y, or z).
         verbosity: Verbosity level (0 = quiet, 1 = show warnings+export, 2 = show mesh).
