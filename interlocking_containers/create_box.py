@@ -1,33 +1,32 @@
 import numpy as np
 import trimesh
 from trimesh.transformations import translation_matrix, rotation_matrix, scale_matrix, scale_and_translate
-import trimesh.repair as repair
 from jsonargparse import CLI
-from typing import Optional
 from importlib import resources
 from pathlib import Path
+from functools import lru_cache
 
 
-def get_model_path(hollow: int = 0) -> Path:
-    """
-    Return a real filesystem path to model.stl.
-    Works when:
-    - running from source
-    - package is installed
-    - package is installed editable
-    - package is zipped
-    """
-
+@lru_cache(maxsize=3)
+def load_model_cache(
+        hollow: int = 0,
+        verbosity: int = 1
+):
+    """ returns the model from the installed package data/ """
     model_name = 'model' if hollow == 0 else f'model_hollow{hollow:1}'
     resource = resources.files('interlocking_containers').joinpath(f'data/{model_name}.stl')
 
     # If we're running from source or editable install, this is already a Path
+    mesh = None
     if isinstance(resource, Path):
-        return resource
+        model_path = resource
+        mesh = trimesh.load(model_path)
 
-    # Otherwise extract to a temporary location
-    with resources.as_file(resource) as path:
-        return path
+    if mesh is None:
+        # Otherwise extract to a temporary location
+        with resources.as_file(resource) as model_path:
+            mesh = trimesh.load(model_path)
+    return mesh
 
 
 def create_box_size(
@@ -38,9 +37,7 @@ def create_box_size(
         scale: float = 1.0,
         verbosity: int = 1
 ):
-    model_path = get_model_path(hollow=hollow)
-    if verbosity >= 2:
-        print(f'loading "{model_path}".')
+
     if nx < 3:
         print(f'warning: nx must be >= 3 ({nx=}). Will be ignored.')
     if ny < 3:
@@ -48,7 +45,8 @@ def create_box_size(
     if height_mm < 40.:
         print(f'warning: height_mm must be >= 40 ({height_mm=}). Will be ignored.')
 
-    mesh = trimesh.load(model_path)
+    mesh = load_model_cache(hollow=hollow).copy()  # make a copy, to avoid modifying the cached version.
+
     nx = max(nx, 3)
     ny = max(ny, 3)
     height_mm = max(height_mm, 40.0)
