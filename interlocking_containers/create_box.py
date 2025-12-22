@@ -81,18 +81,13 @@ def create_box_size(
         bound_mid[0][axis_mask] = -notch_width/2
         bound_mid[1][axis_mask] = +notch_width/2
         bound_end[0][axis_mask] = +notch_width/2
-
         box_beg = trimesh.creation.box(bounds=bound_beg)
         box_mid = trimesh.creation.box(bounds=bound_mid)
         box_end = trimesh.creation.box(bounds=bound_end)
-
         mesh_beg = trimesh.boolean.intersection([mesh, box_beg])
         mesh_mid = trimesh.boolean.intersection([mesh, box_mid])
         mesh_end = trimesh.boolean.intersection([mesh, box_end])
-
-        assert mesh_beg.is_volume
-        assert mesh_mid.is_volume
-        assert mesh_end.is_volume
+        assert mesh_beg.is_volume and mesh_mid.is_volume and mesh_end.is_volume
 
         translation = translation_matrix(axis * -notch_width)
         notches = []
@@ -103,9 +98,7 @@ def create_box_size(
             notches.append(new_notch)
 
         mesh_end.apply_transform(translation)
-
         mesh_parts = [mesh_beg] + notches + [mesh_end]
-
         mesh = trimesh.boolean.union(mesh_parts)
 
     # vertical elongation
@@ -113,41 +106,34 @@ def create_box_size(
     slice_height = 1.0
     if height_mm > height_min:
         vertical = axes['z']
-        mesh_bottom = mesh.slice_plane(
-            plane_origin=-vertical * slice_height/2,
-            plane_normal=-vertical,
-            cap=True
-        )
-        mesh_nobottom = mesh.slice_plane(
-            plane_origin=-vertical * slice_height/2,
-            plane_normal=vertical,
-            cap=True
-        )
-        mesh_mid = mesh_nobottom.slice_plane(
-            plane_origin=vertical * slice_height/2,
-            plane_normal=-vertical,
-            cap=True
-        )
-        mesh_top = mesh_nobottom.slice_plane(
-            plane_origin=vertical * slice_height/2,
-            plane_normal=vertical,
-            cap=True
-        )
+        vertical_mask = vertical.astype(bool)
+        bound_bot = np.array(mesh.bounds)
+        bound_ctr = np.array(mesh.bounds)
+        bound_top = np.array(mesh.bounds)
+        bound_bot[1][vertical_mask] = -slice_height/2
+        bound_ctr[0][vertical_mask] = -slice_height/2
+        bound_ctr[1][vertical_mask] = +slice_height/2
+        bound_top[0][vertical_mask] = +slice_height/2
+        box_bot = trimesh.creation.box(bounds=bound_bot)
+        box_ctr = trimesh.creation.box(bounds=bound_ctr)
+        box_top = trimesh.creation.box(bounds=bound_top)
+        mesh_bot = trimesh.boolean.intersection([mesh, box_bot])
+        mesh_ctr = trimesh.boolean.intersection([mesh, box_ctr])
+        mesh_top = trimesh.boolean.intersection([mesh, box_top])
+        assert mesh_bot.is_volume and mesh_ctr.is_volume and mesh_top.is_volume
 
         # from 40.0 to height = increase
         # so, I get a slice in the middle of size slice_height,
         # and scale it up to slice_height+increase.
         increase = height_mm - height_min
-        mid_scale = np.ones(3) + (vertical * ((increase + slice_height) / slice_height - 1.))
+        mid_scale = np.ones(3)
+        mid_scale[vertical_mask] = ((increase + slice_height) / slice_height)
         mid_trans = vertical * increase / 2.
         mid_mat = scale_and_translate(mid_scale, mid_trans)
-        mesh_mid.apply_transform(mid_mat)
+        mesh_ctr.apply_transform(mid_mat)
         mesh_top.apply_transform(translation_matrix(vertical * increase))
         # reassemble
-        mesh_parts = [mesh_bottom, mesh_mid, mesh_top]
-        for p in mesh_parts:
-            if not p.is_volume:
-                p.update_faces(p.nondegenerate_faces())
+        mesh_parts = [mesh_bot, mesh_ctr, mesh_top]
         mesh = trimesh.boolean.union(mesh_parts)
 
     # global scale
