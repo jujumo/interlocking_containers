@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interlocking_containers"
+version="1.0.0"
+dependencies = [
+    "jsonargparse", "rich",
+    "numpy==1.26", "matplotlib", "pillow",
+    "scikit-image", "trimesh[recommend]", "manifold3d", "pyrender"
+] # project  dependencies
+
+[project.scripts]
+create_box="interlocking_containers.create_box:create_box"
+batch_create="interlocking_containers.batch_create:batch_create"
+
+[tool.setuptools]
+packages = ["interlocking_containers"]
+include-package-data = true
+
+[tool.setuptools.package-data]
+interlocking_containers = ["data/*.stl"]
