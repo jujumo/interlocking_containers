@@ -1,6 +1,6 @@
 import numpy as np
 import trimesh
-from trimesh.transformations import translation_matrix, rotation_matrix, scale_matrix, scale_and_translate
+from trimesh.transformations import translation_matrix, rotation_matrix, identity_matrix, scale_and_translate
 from jsonargparse import auto_cli
 from importlib import resources
 from pathlib import Path
@@ -9,11 +9,11 @@ from functools import lru_cache
 
 @lru_cache(maxsize=3)
 def load_model_cache(
-        hollow: int = 0,
+        fill: int = 0,
         verbosity: int = 1
 ):
     """ returns the model from the installed package data/ """
-    model_name = 'model' if hollow == 0 else f'model_hollow{hollow:1}'
+    model_name = 'model' if fill == 0 else f'model_hollow{fill:1}'
     resource = resources.files('interlocking_containers').joinpath(f'data/{model_name}.stl')
 
     # If we're running from source or editable install, this is already a Path
@@ -30,10 +30,10 @@ def load_model_cache(
 
 
 def create_box_size(
-        nx: int = 3,
-        ny: int = 3,
+        nx: int = 4,
+        ny: int = 4,
         height_mm: float = 40.,
-        hollow: int = 0,
+        fill: int = 0,
         scale: float = 1.0,
         verbosity: int = 1
 ):
@@ -45,7 +45,7 @@ def create_box_size(
     if height_mm < 40. and verbosity >= 1:
         print(f'warning: height_mm must be >= 40 ({height_mm=}). Will be ignored.')
 
-    mesh = load_model_cache(hollow=hollow).copy()  # make a copy, to avoid modifying the cached version.
+    mesh = load_model_cache(fill=fill).copy()  # make a copy, to avoid modifying the cached version.
 
     nx = max(nx, 3)
     ny = max(ny, 3)
@@ -83,15 +83,17 @@ def create_box_size(
         mesh_end = trimesh.boolean.intersection([mesh, box_end])
         assert mesh_beg.is_volume and mesh_mid.is_volume and mesh_end.is_volume
 
-        translation = translation_matrix(axis * -notch_width)
+        # mid parts
         notches = []
-        for idx_notch in range(1, nb_notch-1):
+        for idx_notch in range(0, nb_notch-3):
             new_notch = mesh_mid.copy()
-            translation[0:3, 3] = translation[0:3, 3] + np.array([axis * notch_width])
-            new_notch.apply_transform(translation)
+            mid_translation = translation_matrix((axis * notch_width * idx_notch).tolist())
+            new_notch.apply_transform(mid_translation)
             notches.append(new_notch)
 
-        mesh_end.apply_transform(translation)
+        # end part
+        end_translation = translation_matrix((axis * notch_width * (nb_notch - 4)).tolist())
+        mesh_end.apply_transform(end_translation)
         mesh_parts = [mesh_beg] + notches + [mesh_end]
         mesh = trimesh.boolean.union(mesh_parts)
 
@@ -140,10 +142,10 @@ def create_box_size(
 
 def save_box_size(
         output: str = 'model.stl',
-        nx: int = 3,
-        ny: int = 3,
+        nx: int = 4,
+        ny: int = 4,
         height: float = 40.0,
-        hollow: int = 0,
+        fill: int = 0,
         scale: float = 1.0,
         up: str = 'z',
         verbosity: int = 1,
@@ -156,7 +158,7 @@ def save_box_size(
         nx: Number of divisions along the X axis.
         ny: Number of divisions along the Y axis.
         height: Height of the box in millimeters.
-        hollow: Whether the box is hollow (0 = solid, 1,2,3 = hollow).
+        fill: Whether the box is hollow (0 = solid, 1,2,3 = hollow).
         scale: Scaling factor applied to the model.
         up: Up direction axis (x, y, or z).
         verbosity: Verbosity level (0 = quiet, 1 = show warnings+export, 2 = show mesh).
@@ -164,7 +166,7 @@ def save_box_size(
     if up.lower() not in ['x', 'y', 'z']:
         print(f'warning: up must be x, y or z ({up=}). Will be ignored.')
 
-    mesh = create_box_size(nx=nx, ny=ny, height_mm=height, hollow=hollow, scale=scale, verbosity=verbosity)
+    mesh = create_box_size(nx=nx, ny=ny, height_mm=height, fill=fill, scale=scale, verbosity=verbosity)
 
     if verbosity >= 2:
         mesh.show()

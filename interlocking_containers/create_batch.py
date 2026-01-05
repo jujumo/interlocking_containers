@@ -14,15 +14,13 @@ class BoxConfig:
     ny: int = 3
     height: float = 40.
     scale: float = 1.0
-    hollow: int = 0
+    fill: int = 0
     up: str = 'z'
 
 
 def create_batch_box(
         output_dir: str = 'models',
         up: str = 'z',
-        scale: float = 1.0,
-        hollow: bool = False,
         force: bool = False,
         verbosity: int = 1
 ):
@@ -32,31 +30,28 @@ def create_batch_box(
     Args:
         output_dir: Output root directory.
         up: Up direction axis (x, y, or z).
-        scale: Scaling factor applied to the model.
-        hollow: If true then the hollow version is done.
         force: is True, force rewrite existing files.
         verbosity: Verbosity level (0 = quiet, 1 = display progress, 2 = warnings+export files, 3 = show meshes).
     """
-    interesting_notch_number = [3, 4, 5, 6, 8, 9, 10, 12, 16]
-    interesting_height = [40., 60]
-    interesting_hollow = [0]
-    if hollow:
-        interesting_hollow.append(1)
+    interesting_notch_number = [3, 4, 5, 6, 7, 8, 9, 10, 12, 16]
+    interesting_height = [40., 50]
+    interesting_fill = [0, 2]
+
     configs = [
-        BoxConfig(nx=nx, ny=ny, height=height, hollow=hollow, up=up, scale=scale)
-        for hollow in interesting_hollow
+        BoxConfig(nx=nx, ny=ny, height=height, fill=fill, up=up)
+        for fill in interesting_fill
         for height in interesting_height
         for nx in interesting_notch_number
         for ny in interesting_notch_number
     ]
 
     for config in track(configs):
-        hollow_name = 'solid' if config.hollow == 0 else 'hollow'
+        fill_name = 'solid' if config.fill == 0 else f'hollow{config.fill}'
         height_name = f'height{int(config.height):03}'
-        subdir_path = path.join(output_dir, hollow_name, height_name)
+        subdir_path = path.join(output_dir, fill_name)
         os.makedirs(subdir_path, exist_ok=True)
 
-        output_filename = f'container_{hollow_name}_h{int(config.height):03}_x{config.nx:02}_y{config.ny:02}.stl'
+        output_filename = f'container_{fill_name}_H{int(config.height):03}_X{config.nx:02}_Y{config.ny:02}.stl'
         output_filepath = subdir_path + '/' + output_filename
         if path.isfile(output_filepath) and not force:
             if verbosity >= 1:
@@ -68,7 +63,7 @@ def create_batch_box(
                 nx=config.nx,
                 ny=config.ny,
                 height=config.height,
-                hollow=config.hollow,
+                fill=config.fill,
                 verbosity=verbosity-1
             )
         except Exception:
