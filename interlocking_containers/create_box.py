@@ -82,7 +82,6 @@ def create_box_size(
         mesh_mid = trimesh.boolean.intersection([mesh, box_mid])
         mesh_end = trimesh.boolean.intersection([mesh, box_end])
         assert mesh_beg.is_volume and mesh_mid.is_volume and mesh_end.is_volume
-
         # mid parts
         notches = []
         for idx_notch in range(0, nb_notch-3):
