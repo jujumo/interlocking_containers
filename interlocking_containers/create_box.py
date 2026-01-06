@@ -44,13 +44,15 @@ def create_box_size(
         print(f'warning: ny must be >= 3 ({ny=}). Will be ignored.')
     if height_mm < 40. and verbosity >= 1:
         print(f'warning: height_mm must be >= 40 ({height_mm=}). Will be ignored.')
-
-    mesh = load_model_cache(fill=fill).copy()  # make a copy, to avoid modifying the cached version.
+    if fill < 0 and verbosity >= 1:
+        print(f'warning: fill must be >= 0 ({fill=}). Will be ignored.')
 
     nx = max(nx, 3)
     ny = max(ny, 3)
     height_mm = max(height_mm, 40.0)
+    fill = int(max(fill, 0))
 
+    mesh = load_model_cache(fill=fill).copy()  # make a copy, to avoid modifying the cached version.
     axes = {
         'x': np.array([1, 0, 0]),
         'y': np.array([0, 1, 0]),

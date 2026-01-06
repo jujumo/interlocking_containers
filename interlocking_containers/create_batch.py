@@ -48,7 +48,7 @@ def create_batch_box(
     for config in track(configs):
         fill_name = 'solid' if config.fill == 0 else f'hollow{config.fill}'
         height_name = f'height{int(config.height):03}'
-        subdir_path = path.join(output_dir, fill_name)
+        subdir_path = path.join(output_dir, fill_name, height_name)
         os.makedirs(subdir_path, exist_ok=True)
 
         output_filename = f'container_{fill_name}_H{int(config.height):03}_X{config.nx:02}_Y{config.ny:02}.stl'
