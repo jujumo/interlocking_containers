@@ -1,12 +1,12 @@
 = interlocking_containers
 
-Python script used to generage the https://www.thingiverse.com/thing:6241141[interolocking containers]
+Python script used to generage the https://www.thingiverse.com/thing:7260807[interolocking containers]
 for any random size. See below:
 
 .Some sample of generated containers
 image:doc/samples.png[samples]
 
-.sizes from https://www.thingiverse.com/thing:6241141[thingiverse]
+.sizes[thingiverse]
 image:doc/sizes.png[sizes]
 
 == install
