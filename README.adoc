@@ -89,3 +89,9 @@ models
 
 Be aware the total combinations of boxes use **~2Gb of disk space**.
 
+== Print
+
+For printing "solid" models, enable "spiral" (or vase) mode as illustrated below:
+
+image:doc/vase.gif[vase]
+
