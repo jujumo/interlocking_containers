@@ -1,7 +1,7 @@
 import numpy as np
 import trimesh
 from trimesh.transformations import translation_matrix, rotation_matrix, identity_matrix, scale_and_translate
-from jsonargparse import auto_cli
+from jsonargparse import CLI, ArgumentParser, SUPPRESS
 from importlib import resources
 from pathlib import Path
 from functools import lru_cache
@@ -184,7 +184,20 @@ def save_box_size(
 
 
 def create_box():
-    auto_cli(save_box_size)
+    parser = ArgumentParser()
+    # Automatically add all arguments from greetings parameters
+    parser.add_function_arguments(save_box_size)
+    parser.add_argument('-o', default=SUPPRESS, dest='output')
+    parser.add_argument('-x', default=SUPPRESS, dest='nx')
+    parser.add_argument('-y', default=SUPPRESS, dest='ny')
+    parser.add_argument('-t', default=SUPPRESS, dest='height')
+    parser.add_argument('-s', default=SUPPRESS, dest='scale')
+    parser.add_argument('-f', default=SUPPRESS, dest='fill')
+    parser.add_argument('-u', default=SUPPRESS, dest='up')
+    parser.add_argument('-v', default=SUPPRESS, dest='verbosity')
+    args = parser.parse_args()
+
+    save_box_size(**vars(args))
 
 
 if __name__ == '__main__':
