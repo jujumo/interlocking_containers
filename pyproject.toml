@@ -8,12 +8,13 @@ version="1.0.0"
 dependencies = [
     "jsonargparse[docstring]", "docstring-parser", "rich",
     "numpy==1.26", "matplotlib", "pillow",
-    "scikit-image", "trimesh[recommend]", "manifold3d", "pyrender"
+    "scikit-image", "trimesh[recommend]", "manifold3d", "pyrender", "shapely"
 ] # project  dependencies
 
 [project.scripts]
 create_box="interlocking_containers.create_box:create_box"
 create_batch="interlocking_containers.create_batch:create_batch"
+create_hex="interlocking_containers.create_hex:create_hex"
 
 [tool.setuptools]
 packages = ["interlocking_containers"]
