@@ -3,6 +3,7 @@ import os
 import numpy as np
 from jsonargparse import CLI
 from interlocking_containers.create_box import save_box_size
+from interlocking_containers.create_hex import save_hex_size
 from rich.progress import track
 import os.path as path
 from dataclasses import dataclass
@@ -69,9 +70,76 @@ def create_batch_box(
         except Exception:
             print(f'fail to save {output_filepath}.')
 
+@dataclass
+class HexConfig:
+    n: int = 3
+    height: float = 40.
+    scale: float = 1.0
+    fill: int = 0
+    up: str = 'z'
+
+def create_batch_hex(
+        output_dir: str = 'honeycomb',
+        up: str = 'z',
+        force: bool = False,
+        verbosity: int = 1
+):
+    """
+    Save a 3D honeycomb container model.
+
+    Args:
+        output_dir: Output root directory.
+        up: Up direction axis (x, y, or z).
+        force: is True, force rewrite existing files.
+        verbosity: Verbosity level (0 = quiet, 1 = display progress, 2 = warnings+export files, 3 = show meshes).
+    """
+    interesting_notch_number = [3, 4, 5, 6, 7, 8, 9, 10]
+    interesting_height = [40., 50., 60., 70, 80., 90, 95, 100]
+    interesting_fill = [0, 1, 2]
+    configs = [
+        HexConfig(n=n, height=height, fill=fill, up=up)
+        for fill in interesting_fill
+        for height in interesting_height
+        for n in interesting_notch_number
+    ]
+    for config in track(configs):
+        fill_name = 'solid' if config.fill == 0 else f'hollow{config.fill}'
+        height_name = f'height{int(config.height):03}'
+        subdir_path = path.join(output_dir, fill_name, height_name)
+        os.makedirs(subdir_path, exist_ok=True)
+
+        output_filename = f'honeycomb_{fill_name}_H{int(config.height):03}_N{config.n:02}.stl'
+        output_filepath = subdir_path + '/' + output_filename
+        if path.isfile(output_filepath) and not force:
+            if verbosity >= 1:
+                print(f'skip already existing {output_filepath}.')
+            continue
+        try:
+            save_hex_size(
+                output=output_filepath,
+                n=config.n,
+                height=config.height,
+                fill=config.fill,
+                verbosity=verbosity-1
+            )
+        except Exception:
+            print(f'fail to save {output_filepath}.')
+
+
+def create_batch_cli(
+        output_dir: str = 'models',
+        up: str = 'z',
+        force: bool = False,
+        verbosity: int = 1
+):
+    output_box_dir = path.join(output_dir, 'box')
+    create_batch_box(output_dir=output_box_dir, up=up, force=force, verbosity=verbosity)
+    output_hex_dir = path.join(output_dir, 'honeycomb')
+    create_batch_hex(output_dir=output_hex_dir, up=up, force=force, verbosity=verbosity)
+
 
 def create_batch():
-    CLI(create_batch_box)
+    CLI(create_batch_cli)
 
 
 if __name__ == '__main__':
