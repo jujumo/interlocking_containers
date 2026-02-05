@@ -61,7 +61,6 @@ def create_box_size(
 
     # make Z-UP for ease of mind
     mesh.apply_transform(rotation_matrix(np.pi/2., axes['x']))
-
     # notch creation : from abc to abbbbc
     notch_width = 10.
     notch_repeat = {'x': nx, 'y': ny}
@@ -183,21 +182,21 @@ def save_box_size(
         mesh.export(output)
 
 
-def create_box():
-    parser = ArgumentParser()
-    # Automatically add all arguments from greetings parameters
-    parser.add_function_arguments(save_box_size)
-    parser.add_argument('-o', default=SUPPRESS, dest='output')
-    parser.add_argument('-x', default=SUPPRESS, dest='nx')
-    parser.add_argument('-y', default=SUPPRESS, dest='ny')
-    parser.add_argument('-t', default=SUPPRESS, dest='height')
-    parser.add_argument('-s', default=SUPPRESS, dest='scale')
-    parser.add_argument('-f', default=SUPPRESS, dest='fill')
-    parser.add_argument('-u', default=SUPPRESS, dest='up')
-    parser.add_argument('-v', default=SUPPRESS, dest='verbosity')
-    args = parser.parse_args()
+class AliasingParser(ArgumentParser):
+    def add_argument(self, *args, **kwargs):
+        if args == ('--output',): args += ('-o',)
+        if args == ('--nx',): args += ('-x',)
+        if args == ('--ny',): args += ('-y',)
+        if args == ('--height',): args += ('-t',)
+        if args == ('--scale',): args += ('-s',)
+        if args == ('--fill',): args += ('-f',)
+        if args == ('--up',): args += ('-u',)
+        if args == ('--verbosity',): args += ('-v',)
+        return super().add_argument(*args, **kwargs)
 
-    save_box_size(**vars(args))
+
+def create_box():
+    CLI(save_box_size, parser_class=AliasingParser)
 
 
 if __name__ == '__main__':

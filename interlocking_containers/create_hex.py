@@ -247,20 +247,20 @@ def save_hex_size(
         mesh.export(output)
 
 
-def create_hex():
-    parser = ArgumentParser()
-    # Automatically add all arguments from greetings parameters
-    parser.add_function_arguments(save_hex_size)
-    parser.add_argument('-o', default=SUPPRESS, dest='output')
-    parser.add_argument('-n', default=SUPPRESS, dest='n')
-    parser.add_argument('-t', default=SUPPRESS, dest='height')
-    parser.add_argument('-s', default=SUPPRESS, dest='scale')
-    parser.add_argument('-f', default=SUPPRESS, dest='fill')
-    parser.add_argument('-u', default=SUPPRESS, dest='up')
-    parser.add_argument('-v', default=SUPPRESS, dest='verbosity')
-    args = parser.parse_args()
+class AliasingParser(ArgumentParser):
+    def add_argument(self, *args, **kwargs):
+        if args == ('--output',): args += ('-o',)
+        if args == ('--n',): args += ('-n',)
+        if args == ('--height',): args += ('-t',)
+        if args == ('--scale',): args += ('-s',)
+        if args == ('--fill',): args += ('-f',)
+        if args == ('--up',): args += ('-u',)
+        if args == ('--verbosity',): args += ('-v',)
+        return super().add_argument(*args, **kwargs)
 
-    save_hex_size(**vars(args))
+
+def create_hex():
+    CLI(save_hex_size, parser_class=AliasingParser)
 
 
 if __name__ == '__main__':
