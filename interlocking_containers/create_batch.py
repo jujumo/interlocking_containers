@@ -103,9 +103,9 @@ def create_batch_hex(
         for n in interesting_notch_number
     ]
     for config in track(configs):
+        notch_name = f'N{config.n:02}'
         fill_name = 'solid' if config.fill == 0 else f'hollow{config.fill}'
-        height_name = f'height{int(config.height):03}'
-        subdir_path = path.join(output_dir, fill_name, height_name)
+        subdir_path = path.join(output_dir, notch_name, fill_name)
         os.makedirs(subdir_path, exist_ok=True)
 
         output_filename = f'honeycomb_{fill_name}_H{int(config.height):03}_N{config.n:02}.stl'
