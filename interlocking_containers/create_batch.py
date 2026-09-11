@@ -34,7 +34,7 @@ def create_batch_box(
         force: is True, force rewrite existing files.
         verbosity: Verbosity level (0 = quiet, 1 = display progress, 2 = warnings+export files, 3 = show meshes).
     """
-    interesting_notch_number = [4, 5, 6, 7, 8, 9, 10, 12, 16]
+    interesting_notch_number = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 16]
     interesting_height = [40., 50]
     interesting_fill = [0, 2]
 
@@ -93,7 +93,7 @@ def create_batch_hex(
         force: is True, force rewrite existing files.
         verbosity: Verbosity level (0 = quiet, 1 = display progress, 2 = warnings+export files, 3 = show meshes).
     """
-    interesting_notch_number = [3, 4, 5, 6, 7, 8, 9, 10]
+    interesting_notch_number = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     interesting_height = [40., 50., 60., 70, 80., 90, 95, 100]
     interesting_fill = [0, 1, 2]
     configs = [
